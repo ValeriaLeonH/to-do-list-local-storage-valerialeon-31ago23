@@ -1,7 +1,7 @@
 //Initial References
 const newTaskInput = document.querySelector("#new-task input");
-const taskDiv = document.querySelector("#tasks");
-let deleteTask = editTasks, tasks;
+const tasksDiv = document.querySelector("#tasks");
+let deleteTasks, editTasks, tasks;
 let updateNote = "";
 let count;
 
@@ -13,15 +13,15 @@ window.onload = () => {
 }
 
 //Function to Display The Task
-const displayTask = () => {
+const displayTasks = () => {
   if(Object.keys(localStorage).length > 0){
-    taskDiv.computedStyleMap.display  = "inline.block";
+    tasksDiv.style.display = "inline-block";
   } else { 
-    taskDiv.computedStyleMap.display = "none";
+    tasksDiv.style.display = "none";
   }
 
   //Clear the Task 
-  taskDiv.innerHTML = "";
+  tasksDiv.innerHTML = "";
 
   //Featch All the keys in local storage
   let tasks = Object.keys(localStorage);
@@ -38,9 +38,9 @@ const displayTask = () => {
     taskInnerDiv.innerHTML = `<span id="taskname">${key.split("_")[1]}</span>`;
 
     //localStorage would store boolean as string so we parse it to boolean back
-    let editButton = document.CreateElement("button");
+    let editButton = document.createElement("button");
     editButton.classList.add("edit");
-    editButton.innerHTML = `<ion-icon name="create-outline"></ion-icon>`;
+    editButton.innerHTML = `<ion-icon name="create"></ion-icon>`;
     if(!JSON.parse(value)){
       editButton.style.visibility = "visible";
     } else {
@@ -48,23 +48,94 @@ const displayTask = () => {
       taskInnerDiv.classList.add("completed");
     }
     taskInnerDiv.appendChild(editButton);
-    taskInnerDiv.innerHTML += '<button class="delete"><ion-icon name="trash-outline"></ion-icon></button>';
-    taskDiv.appendChild(taskInnerDiv);
+    taskInnerDiv.innerHTML += `<button class="delete"><ion-icon name="trash-outline"></ion-icon></button>`;
+    tasksDiv.appendChild(taskInnerDiv);
   }
 
   //tasks completed 
-  tasks = document.querySelectorAll("tasks");
+  tasks = document.querySelectorAll(".task");
   tasks.forEach((element, index) => {
     element.onclick = () => {
       //localstorage update
       if(element.classList.contains("completed")){
         updateStorage(element.id.split("_")[0], element.innerText, false);
       } else {
-        updateStorage(element.id.split("_")[0], element.innerText, true)
+        updateStorage(element.id.split("_")[0], element.innerText, true);
       }
     };
   });
 
   //Edit Tasks
   editTasks = document.getElementsByClassName("edit");
-}
+  Array.from(editTasks).forEach((element, index) => {
+    element.addEventListener("click", (e)=> {
+      //Stop propagation to outer elements (if removed when we click delete eventually rhw click will move to parent)
+      e.stopPropagation();
+      //diseable other edit buttons when one task is being edited
+      disableButtons(true);
+      //update input value and remove div
+      let parent = element.parentElement;
+      newTaskInput.value = parent.querySelector("#taskname").innerText;
+      //set updateNote to the task that is being edited
+      updateNote = parent.id;
+      //remove tasks
+      parent.remove();
+    });
+  });
+
+  //Delete tasks
+  deleteTasks = document.getElementsByClassName("delete");
+  Array.from(deleteTasks).forEach((element, index) => {
+    element.addEventListener("click", (e) => {
+      e.stopPropagation();
+      //Delete from local storage and remove div
+      let parent = element.parentElement;
+      removeTask(parent.id);
+      parent.remove();
+      count -=1;
+    });
+  });
+};
+
+//Disable Edit Button
+const disableButtons = (bool) => {
+  let editButtons = document.getElementsByClassName("edit");
+  Array.from(editButtons).forEach((element) => {
+    element.disabled = bool;
+  });
+};
+
+//Remove Task from local storage
+const removeTask = (taskValue) => {
+  localStorage.removeItem(taskValue);
+  displayTasks();
+};
+
+// Add tasks to local storage
+const updateStorage = (index, taskValue, completed) => {
+  localStorage.setItem(`${index}_${taskValue}`, completed);
+  displayTasks();
+};
+
+//Function to Add New Task
+document.querySelector("#push").addEventListener("click", () =>{
+  //Enable the edit button
+  disableButtons(false);
+  if (newTaskInput.value.length == 0){
+    alert("Please Enter A Task");
+  } else {
+    //Store locally and display from local storage
+    if(updateNote == ""){
+      //new task
+      updateStorage(count, newTaskInput.value, false);
+    } else{
+      //update task
+      let existingCount = updateNote.split("_")[0];
+      removeTask(updateNote);
+      updateStorage(existingCount, newTaskInput.value, false);
+      updateNote = "";
+    }
+    count += 1;
+    newTaskInput.value = "";
+  }
+});

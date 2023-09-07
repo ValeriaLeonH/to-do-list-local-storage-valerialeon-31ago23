@@ -47,7 +47,7 @@ body{
 
 #new-task input:focus{
   outline: none;
-  background-color: var(--main-color);
+  border-color: var(--main-color);
 }
 
 #new-task button{
@@ -84,12 +84,12 @@ body{
 
 .task span{
   font-family: var(--poppin-font);
-  font-size: 9em;
+  font-size: 0.9em;
 }
 
 .task button{
   color: white;
-  padding: 0.8em;
+  padding: 0.8em 0;
   width: 2.8em;
   border-radius: 0.3em;
   border: none;
@@ -104,9 +104,9 @@ body{
 .edit{
   background-color: var(--main-color);
   margin-left: auto;
-  margin-right: auto;
+  margin-right: 3em;
 }
 
-.complete{
+.completed{
   text-decoration: line-through;
 }
